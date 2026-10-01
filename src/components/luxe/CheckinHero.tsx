@@ -50,7 +50,7 @@ export function CheckinHero({ venue, location, checkIn, guests, checkedIn, image
   return (
     <PressableScale to={0.98} onPress={onPress} accessibilityLabel={`Next check-in at ${venue}, ${location}`} style={style}>
       <View style={styles.card}>
-        <Image source={venueImage(image, type)} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image source={venueImage(image, type)} style={styles.image} resizeMode="cover" />
         <LinearGradient
           colors={[alpha("#05070c", 0.15), alpha("#05070c", 0.35), alpha("#05070c", 0.94)]}
           locations={[0, 0.4, 1]}
@@ -110,8 +110,12 @@ function Meta({ icon: Icon, text }: { icon: typeof MapPin; text: string }) {
 }
 
 const useStyles = makeStyles((t) => ({
+  // Explicit 100% box — on web an absoluteFill Image falls back to the
+  // asset's intrinsic 1024px size and shows a zoomed-in corner.
+  image: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" },
   card: {
-    height: 248,
+    aspectRatio: 1.55,
+    minHeight: 220,
     borderRadius: 26,
     overflow: "hidden",
     padding: t.spacing[4],

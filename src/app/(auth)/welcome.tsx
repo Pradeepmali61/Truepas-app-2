@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
     <View style={styles.screen}>
       {/* ---------- photography + fades ---------- */}
       <View style={[styles.hero, { height: heroHeight }]}>
-        <Image source={HERO} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image source={HERO} style={styles.heroImage} resizeMode="cover" />
         <LinearGradient
           colors={[alpha(t.brand.b700, 0.35), alpha(t.brand.b700, 0)]}
           start={{ x: 0, y: 0 }}
@@ -118,6 +118,7 @@ export default function WelcomeScreen() {
 const useStyles = makeStyles((t) => ({
   screen: { flex: 1, backgroundColor: t.colors.background },
   hero: { position: 'absolute', top: 0, left: 0, right: 0, overflow: 'hidden' },
+  heroImage: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
   brandBar: {
     flexDirection: 'row',
     alignItems: 'center',

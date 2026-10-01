@@ -40,7 +40,7 @@ export function BookingTile({ venue, location, type, image, status, checkIn, che
     <PressableScale to={0.98} onPress={onPress} accessibilityLabel={`${venue}, ${location}`} style={style}>
       <View style={styles.card}>
         <View style={styles.photo}>
-          <Image source={venueImage(image, type)} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          <Image source={venueImage(image, type)} style={styles.image} resizeMode="cover" />
           <LinearGradient
             colors={[alpha("#05070c", 0.25), alpha("#05070c", 0), alpha(t.colors.surface, 1)]}
             locations={[0, 0.45, 1]}
@@ -106,6 +106,9 @@ function Meta({ icon: Icon, text }: { icon: typeof MapPin; text: string }) {
 }
 
 const useStyles = makeStyles((t) => ({
+  // Explicit 100% box — on web an absoluteFill Image falls back to the
+  // asset's intrinsic 1024px size and shows a zoomed-in corner.
+  image: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%" },
   card: {
     borderRadius: 24,
     overflow: "hidden",
@@ -113,7 +116,8 @@ const useStyles = makeStyles((t) => ({
     borderWidth: 1,
     borderColor: t.colors.border,
   },
-  photo: { height: 132, padding: t.spacing[3], overflow: "hidden" },
+  // Bundled venue photos are ~1.72:1 — keep the frame close so they aren't over-cropped.
+  photo: { aspectRatio: 1.8, padding: t.spacing[3], overflow: "hidden" },
   photoTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   typeChip: {
     paddingHorizontal: 10,
