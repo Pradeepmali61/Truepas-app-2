@@ -5,6 +5,7 @@ import Svg, { Circle, Defs, RadialGradient, Rect, Stop } from "react-native-svg"
 import { TruepasIcon } from "@/components/app/TruepasIcon";
 import { alpha, makeStyles } from "@/theme";
 import { PressableScale } from "./PressableScale";
+import { useSvgId } from "./useSvgId";
 
 export interface PassCardProps {
   name: string;
@@ -31,6 +32,7 @@ export function PassCard({ name, memberId, verified, faceEnrolled, documents, fa
   const styles = useStyles();
   const tail = memberId.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase().padStart(4, "0");
   const Seal = verified ? ShieldCheck : ShieldAlert;
+  const leakId = useSvgId("leak");
 
   return (
     <PressableScale
@@ -50,13 +52,13 @@ export function PassCard({ name, memberId, verified, faceEnrolled, documents, fa
         {/* light leak + guilloche rings */}
         <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
           <Defs>
-            <RadialGradient id="leak" cx="100%" cy="0%" rx="70%" ry="80%" fx="100%" fy="0%">
+            <RadialGradient id={leakId} cx="100%" cy="0%" rx="70%" ry="80%" fx="100%" fy="0%">
               <Stop offset="0" stopColor="#3fd0ff" stopOpacity={0.55} />
               <Stop offset="0.55" stopColor="#3fd0ff" stopOpacity={0.08} />
               <Stop offset="1" stopColor="#3fd0ff" stopOpacity={0} />
             </RadialGradient>
           </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#leak)" />
+          <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${leakId})`} />
           {Array.from({ length: 14 }, (_, i) => (
             <Circle
               key={i}

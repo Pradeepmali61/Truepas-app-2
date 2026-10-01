@@ -1,6 +1,7 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { useThemeTokens } from "@/theme";
+import { useSvgId } from "./useSvgId";
 
 export type AuraTone = "brand" | "success" | "warning" | "error";
 
@@ -31,24 +32,26 @@ export function Aura({ height = 520, tone = "brand", intensity = 1, style }: Aur
           ? [t.colors.error, t.colors.warning]
           : [t.brand.b500, t.combo?.accent.b500 ?? t.colors.accent];
   const k = (dark ? 1 : 0.55) * intensity;
+  const idA = useSvgId("auraA");
+  const idB = useSvgId("auraB");
 
   return (
     <View pointerEvents="none" style={[styles.root, { height }, style]}>
       <Svg width="100%" height="100%">
         <Defs>
-          <RadialGradient id="auraA" cx="18%" cy="0%" rx="85%" ry="70%" fx="18%" fy="0%">
+          <RadialGradient id={idA} cx="18%" cy="0%" rx="85%" ry="70%" fx="18%" fy="0%">
             <Stop offset="0" stopColor={a} stopOpacity={0.42 * k} />
             <Stop offset="0.45" stopColor={a} stopOpacity={0.12 * k} />
             <Stop offset="1" stopColor={a} stopOpacity={0} />
           </RadialGradient>
-          <RadialGradient id="auraB" cx="92%" cy="8%" rx="70%" ry="55%" fx="92%" fy="8%">
+          <RadialGradient id={idB} cx="92%" cy="8%" rx="70%" ry="55%" fx="92%" fy="8%">
             <Stop offset="0" stopColor={b} stopOpacity={0.28 * k} />
             <Stop offset="0.5" stopColor={b} stopOpacity={0.07 * k} />
             <Stop offset="1" stopColor={b} stopOpacity={0} />
           </RadialGradient>
         </Defs>
-        <Rect x="0" y="0" width="100%" height="100%" fill="url(#auraA)" />
-        <Rect x="0" y="0" width="100%" height="100%" fill="url(#auraB)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${idA})`} />
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${idB})`} />
       </Svg>
     </View>
   );

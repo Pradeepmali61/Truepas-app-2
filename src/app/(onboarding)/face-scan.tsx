@@ -1,11 +1,12 @@
 import { Redirect, useRouter } from 'expo-router';
 import { ListChecks, ScanFace, Sun, Timer, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Alert, ScreenHeader } from '@/components/composite';
-import { CoreButton, NeuBox, NeuWell, Progress, Pulse, RowIcon, Typography } from '@/components/ui';
+import { Aura, ListGroup, ListRow, RowGlyph } from '@/components/luxe';
+import { CoreButton, Progress, Pulse, RowIcon, ScanFrame, ScanLine, Typography } from '@/components/ui';
 import { CameraUnavailable, loadLivenessCamera } from '@/features/liveness/cameraModule';
 import { useAppSelector } from '@/store';
 import { makeStyles, useThemeTokens } from '@/theme';
@@ -13,8 +14,8 @@ import { iconSize } from '@/theme/tokens';
 
 const POINTS: { icon: LucideIcon; title: string }[] = [
   { icon: ListChecks, title: 'Follow the on-screen prompts' },
-  { icon: Sun, title: 'Hold still in good light' },
-  { icon: Timer, title: 'The session expires after a few minutes' },
+  { icon: Sun, title: 'Find good, even light' },
+  { icon: Timer, title: 'Finish within a few minutes' },
 ];
 
 /** Face scan — mandatory liveness + face enrollment gate (no skip, PRD v2.0).
@@ -38,53 +39,51 @@ export default function FaceScanScreen() {
 
   if (!started) {
     return (
-      <SafeAreaView edges={['top']} style={styles.safe}>
-        <ScreenHeader title="Face verification" onBack={() => router.back()} />
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.introStage}>
-            <NeuBox variant="raised" depth={6} style={styles.hero}>
-              <Pulse to={1.05} ms={1400}>
-                <NeuWell radius={theme.radii.full} style={styles.heroTarget}>
-                  <ScanFace size={theme.iconSize.xl} color={theme.colors.actionPrimary} />
-                </NeuWell>
-              </Pulse>
-              <Typography variant="h3" center>
-                Prove it&apos;s really you
-              </Typography>
-              <Typography variant="body-sm" color="secondary" center>
-                We&apos;ll guide you through a few quick movements on camera.
-              </Typography>
-            </NeuBox>
-
-            <NeuBox variant="raised" depth={4} color={theme.colors.surface} style={styles.bulletCard}>
-              <View style={styles.bullets}>
-                {POINTS.map(({ icon: BulletIcon, title }) => (
-                  <View key={title} style={styles.bulletRow}>
-                    <View style={styles.bulletIcon}>
-                      <BulletIcon size={theme.iconSize.sm} color={theme.colors.actionPrimary} />
-                    </View>
-                    <Typography variant="body-sm" color="secondary" style={styles.bulletText}>
-                      {title}
-                    </Typography>
+      <View style={styles.safe}>
+        <Aura height={520} />
+        <SafeAreaView edges={['top']} style={styles.flex}>
+          <ScreenHeader title="Face verification" onBack={() => router.back()} />
+          <ScrollView
+            style={styles.flex}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}>
+            <View style={styles.introStage}>
+              <View style={styles.hero}>
+                <ScanFrame padding={14}>
+                  <View style={styles.viewfinder}>
+                    <ScanLine color={theme.colors.accent} />
+                    <Pulse to={1.06} ms={1500}>
+                      <ScanFace size={64} strokeWidth={1.2} color={theme.colors.textPrimary} />
+                    </Pulse>
                   </View>
-                ))}
+                </ScanFrame>
+                <Text style={styles.title}>Prove it&apos;s really you</Text>
+                <Text style={styles.sub}>A 20-second guided scan. We&apos;ll ask for a few small movements on camera.</Text>
               </View>
-            </NeuBox>
+
+              <ListGroup>
+                {POINTS.map(({ icon, title }, i) => (
+                  <ListRow
+                    key={title}
+                    leading={<RowGlyph icon={icon} tone={i === 1 ? 'warning' : 'brand'} size={36} />}
+                    title={title}
+                  />
+                ))}
+              </ListGroup>
+            </View>
+          </ScrollView>
+          <View style={[styles.footer, { paddingBottom: theme.spacing[4] + insets.bottom }]}>
+            <CoreButton
+              fullWidth
+              size="lg"
+              accessibilityLabel="Start verification"
+              iconLeft={<ScanFace size={20} strokeWidth={2} color={theme.colors.onActionPrimary} />}
+              onPress={() => setStarted(true)}>
+              Start face scan
+            </CoreButton>
           </View>
-        </ScrollView>
-        <View style={[styles.footer, { paddingBottom: theme.spacing[4] + insets.bottom }]}>
-          <CoreButton
-            fullWidth
-            size="lg"
-            accessibilityLabel="Start verification"
-            onPress={() => setStarted(true)}>
-            Start
-          </CoreButton>
-        </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -161,37 +160,32 @@ const useStyles = makeStyles((t) => ({
   safe: { flex: 1, backgroundColor: t.colors.background },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: t.spacing[6] },
-  // Design: the two cards sit vertically centered in the free space.
   introStage: {
     flex: 1,
     justifyContent: 'center',
-    gap: t.spacing[6],
-    paddingHorizontal: t.spacing[4],
+    gap: t.spacing[8],
+    paddingHorizontal: t.sizes.screenGutter,
   },
-  hero: { alignItems: 'center', gap: t.spacing[3], padding: t.spacing[6] },
-  heroTarget: {
-    width: 96,
-    height: 96,
+  hero: { alignItems: 'center', gap: t.spacing[3] },
+  viewfinder: {
+    width: 176,
+    height: 176,
+    borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  bulletCard: { padding: t.spacing[4] },
-  bullets: { gap: t.spacing[4] },
-  bulletRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing[3] },
-  bulletIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: t.radii.full,
-    backgroundColor: t.colors.actionPrimarySubtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bulletText: { flex: 1 },
-  footer: {
-    paddingHorizontal: t.spacing[4],
-    paddingTop: t.spacing[4],
-    borderTopWidth: t.sizes.fieldBorderWidth,
-    borderTopColor: t.colors.borderSubtle,
+    overflow: 'hidden',
     backgroundColor: t.colors.surface,
+    borderWidth: 1,
+    borderColor: t.colors.border,
   },
+  title: {
+    fontFamily: t.fontFamily.display.bold,
+    fontSize: 28,
+    letterSpacing: -0.9,
+    textAlign: 'center',
+    color: t.colors.textPrimary,
+    marginTop: t.spacing[4],
+  },
+  sub: { fontSize: 15, lineHeight: 22, textAlign: 'center', color: t.colors.textSecondary, paddingHorizontal: t.spacing[4] },
+  footer: { paddingHorizontal: t.sizes.screenGutter, paddingTop: t.spacing[3] },
 }));

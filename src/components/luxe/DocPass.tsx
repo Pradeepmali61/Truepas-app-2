@@ -5,6 +5,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 import { alpha, makeStyles } from "@/theme";
 import { PressableScale } from "./PressableScale";
 import { StatusPill } from "./StatusPill";
+import { useSvgId } from "./useSvgId";
 
 /** Per-document-type art direction: glyph + a deep two-stop gradient. */
 export const DOC_ART: Record<string, { icon: LucideIcon; colors: [string, string]; glow: string }> = {
@@ -41,6 +42,7 @@ export function DocPass({ type, label, number, status, expiresAt, onPress, style
   const art = DOC_ART[type ?? ""] ?? FALLBACK;
   const Icon = art.icon;
   const exp = expiry(expiresAt);
+  const glowId = useSvgId("glow");
   const digits = number.replace(/[^0-9a-z]/gi, "").slice(-4);
   return (
     <PressableScale to={0.98} onPress={onPress} accessibilityLabel={`${label}, ${status}`} style={style}>
@@ -48,12 +50,12 @@ export function DocPass({ type, label, number, status, expiresAt, onPress, style
         <LinearGradient colors={art.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
           <Defs>
-            <RadialGradient id={`glow-${type ?? "doc"}`} cx="100%" cy="0%" rx="60%" ry="120%" fx="100%" fy="0%">
+            <RadialGradient id={glowId} cx="100%" cy="0%" rx="60%" ry="120%" fx="100%" fy="0%">
               <Stop offset="0" stopColor={art.glow} stopOpacity={0.45} />
               <Stop offset="1" stopColor={art.glow} stopOpacity={0} />
             </RadialGradient>
           </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill={`url(#glow-${type ?? "doc"})`} />
+          <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${glowId})`} />
         </Svg>
         <LinearGradient
           colors={[alpha("#ffffff", 0.1), alpha("#ffffff", 0)]}

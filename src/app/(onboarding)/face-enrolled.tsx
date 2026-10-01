@@ -1,15 +1,15 @@
 import { Redirect, useRouter } from 'expo-router';
-import { CircleCheck, ScanFace } from 'lucide-react-native';
+import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Badge, CoreButton, FadeUp, NeuBox, PopIn, RowIcon, Typography } from '@/components/ui';
+import { Aura, HeroGlyph, PassCard } from '@/components/luxe';
+import { CoreButton, FadeUp } from '@/components/ui';
 import { faceEnrollmentCompleted } from '@/features/auth/slice';
 import { flowGuards } from '@/services/flowGuards';
-import { useAppDispatch } from '@/store';
-import { useThemeTokens } from '@/theme';
-import { iconSize } from '@/theme/tokens';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { makeStyles, useThemeTokens } from '@/theme';
 
 /** Face enrolled success (POST /cb/face/enroll) — the enroll call already
  *  completed in LivenessCamera; this confirms and leads into the app.
@@ -17,6 +17,8 @@ import { iconSize } from '@/theme/tokens';
  *  may flip faceEnrolled. */
 export default function FaceEnrolledScreen() {
   const theme = useThemeTokens();
+  const styles = useStyles();
+  const user = useAppSelector((state) => state.auth.user);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -34,47 +36,50 @@ export default function FaceEnrolledScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View style={{ flex: 1, padding: theme.spacing[4], gap: theme.spacing[4] }}>
-        <View style={{ alignItems: 'center', gap: theme.spacing[2], marginTop: theme.spacing[8] }}>
-          <PopIn>
-            <RowIcon tone="success" icon={<ScanFace size={iconSize.xl} color={theme.colors.onSuccessSubtle} />} />
-          </PopIn>
-          <Typography variant="h2" center>
-            You&apos;re all set
-          </Typography>
-          <Typography variant="body" color="secondary" center>
-            Your face is enrolled. Check in at venues with a glance — no documents needed.
-          </Typography>
+    <View style={styles.screen}>
+      <Aura height={520} tone="success" intensity={0.8} />
+      <SafeAreaView edges={['top']} style={styles.flex}>
+        <View style={styles.body}>
+          <View style={styles.hero}>
+            <HeroGlyph icon={Check} tone="success" size={150} />
+            <FadeUp delay={120}>
+              <Text style={styles.title}>You&apos;re all set</Text>
+            </FadeUp>
+            <FadeUp delay={180}>
+              <Text style={styles.sub}>Your face is enrolled and your Truepas Pass is live. Check in anywhere with a glance.</Text>
+            </FadeUp>
+          </View>
+          <FadeUp delay={280}>
+            <PassCard
+              name={user?.fullName ?? 'Truepas member'}
+              memberId={user?.id ?? '0000'}
+              verified
+              faceEnrolled
+            />
+          </FadeUp>
         </View>
-        <FadeUp delay={140}>
-          <NeuBox
-            variant="raised"
-            depth={4}
-            color={theme.colors.surface}
-            style={{ padding: theme.spacing[4] }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing[3] }}>
-              <RowIcon tone="success" icon={<CircleCheck size={iconSize.md} color={theme.colors.onSuccessSubtle} />} />
-              <View style={{ flex: 1, gap: 2, minWidth: 0 }}>
-                <Typography variant="body">Face ID</Typography>
-                <Typography variant="body-sm" color="secondary">Enrolled</Typography>
-              </View>
-              <Badge variant="success">Active</Badge>
-            </View>
-          </NeuBox>
-        </FadeUp>
-      </View>
-      <View
-        style={{
-          paddingHorizontal: theme.spacing[4],
-          paddingTop: theme.spacing[4],
-          paddingBottom: theme.spacing[4] + insets.bottom,
-          gap: theme.spacing[2],
-        }}>
-        <CoreButton fullWidth size="lg" accessibilityLabel="Continue to Truepas" onPress={handleContinue}>
-          Continue to Truepas
-        </CoreButton>
-      </View>
-    </SafeAreaView>
+        <View style={[styles.footer, { paddingBottom: theme.spacing[4] + insets.bottom }]}>
+          <CoreButton fullWidth size="lg" accessibilityLabel="Continue to Truepas" onPress={handleContinue}>
+            Continue to Truepas
+          </CoreButton>
+        </View>
+      </SafeAreaView>
+    </View>
   );
 }
+
+const useStyles = makeStyles((t) => ({
+  screen: { flex: 1, backgroundColor: t.colors.background },
+  flex: { flex: 1 },
+  body: { flex: 1, paddingHorizontal: t.sizes.screenGutter, gap: t.spacing[6], justifyContent: 'center' },
+  hero: { alignItems: 'center', gap: t.spacing[3] },
+  title: {
+    fontFamily: t.fontFamily.display.bold,
+    fontSize: 32,
+    letterSpacing: -1.1,
+    textAlign: 'center',
+    color: t.colors.textPrimary,
+  },
+  sub: { fontSize: 15.5, lineHeight: 23, textAlign: 'center', color: t.colors.textSecondary },
+  footer: { paddingHorizontal: t.sizes.screenGutter, paddingTop: t.spacing[3] },
+}));

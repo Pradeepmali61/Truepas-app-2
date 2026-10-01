@@ -32,11 +32,13 @@ export interface ListRowProps {
   trailing?: ReactNode;
   chevron?: boolean;
   destructive?: boolean;
+  /** Max subtitle lines. Default 2. */
+  subtitleLines?: number;
   onPress?: () => void;
   accessibilityLabel?: string;
 }
 
-export function ListRow({ title, subtitle, leading, trailing, chevron, destructive, onPress, accessibilityLabel }: ListRowProps) {
+export function ListRow({ title, subtitle, leading, trailing, chevron, destructive, subtitleLines = 2, onPress, accessibilityLabel }: ListRowProps) {
   const styles = useStyles();
   const t = useThemeTokens();
   const [pressed, setPressed] = useState(false);
@@ -48,7 +50,7 @@ export function ListRow({ title, subtitle, leading, trailing, chevron, destructi
           {title}
         </Text>
         {subtitle != null && (
-          <Text style={styles.subtitle} numberOfLines={2}>
+          <Text style={styles.subtitle} numberOfLines={subtitleLines}>
             {subtitle}
           </Text>
         )}

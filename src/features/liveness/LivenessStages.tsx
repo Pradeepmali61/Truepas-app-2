@@ -8,13 +8,12 @@
  * browser previews pass a placeholder instead of <Camera/>).
  */
 import { useRouter } from 'expo-router';
-import { Check, CircleCheck, CircleX, RotateCcw, ScanFace, SwitchCamera } from 'lucide-react-native';
+import { Check, RotateCcw, ScanFace, SwitchCamera, X } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import {
     Alert as RNAlert,
     Animated,
     ScrollView,
-    StyleSheet,
     Text,
     View,
     useWindowDimensions,
@@ -22,6 +21,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/composite';
+import { Aura, HeroGlyph } from '@/components/luxe';
 import {
     Blink,
     CoreButton,
@@ -29,13 +29,11 @@ import {
     IconButton,
     NeuBox,
     NeuWell,
-    PopIn,
-    Pulse,
     ScanFrame,
     Spinner,
     Typography,
 } from '@/components/ui';
-import { alpha, useThemeTokens } from '@/theme';
+import { useThemeTokens } from '@/theme';
 import { iconSize } from '@/theme/tokens';
 import type { LivenessChallenge } from '@/types/domain';
 
@@ -339,6 +337,7 @@ export function FinishingStage({ cameraSlot }: { cameraSlot?: ReactNode }) {
   const theme = useThemeTokens();
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Aura height={560} />
       <ScreenHeader title="Face verification" />
       <View
         style={{
@@ -346,13 +345,9 @@ export function FinishingStage({ cameraSlot }: { cameraSlot?: ReactNode }) {
           alignItems: 'center',
           justifyContent: 'center',
           gap: theme.spacing[3],
-          paddingHorizontal: theme.spacing[4],
+          paddingHorizontal: theme.sizes.screenGutter,
         }}>
-        <Pulse to={1.07} ms={850}>
-          <NeuWell radius={theme.radii.full} style={{ width: 96, height: 96, alignItems: 'center', justifyContent: 'center' }}>
-            <ScanFace size={iconSize.xl} color={theme.colors.actionPrimary} />
-          </NeuWell>
-        </Pulse>
+        <HeroGlyph icon={ScanFace} size={160} />
         <Typography variant="h3" center>
           Verifying…
         </Typography>
@@ -404,7 +399,6 @@ export function LivenessResultStage({
   const conf =
     outcome === 'passed'
       ? {
-          icon: CircleCheck,
           bg: theme.colors.successSubtle,
           fg: theme.colors.onSuccessSubtle,
           title: "You're verified",
@@ -413,58 +407,24 @@ export function LivenessResultStage({
             : 'Your face is enrolled. Check in at venues with a glance — no documents needed.',
         }
       : {
-          icon: CircleX,
           bg: theme.colors.errorSubtle,
           fg: theme.colors.onErrorSubtle,
           title: "We couldn't verify liveness",
           body: 'Move to a brighter spot and keep the face inside the ring for the whole step.',
         };
-  const IconCmp = conf.icon;
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <Aura height={560} tone={outcome === 'passed' ? 'success' : 'error'} intensity={0.7} />
       <View
         style={{
           flex: 1,
           alignItems: 'center',
           justifyContent: 'center',
-          gap: theme.spacing[2],
-          paddingHorizontal: theme.spacing[4],
+          gap: theme.spacing[3],
+          paddingHorizontal: theme.sizes.screenGutter,
         }}>
-        <View style={{ alignItems: 'center', justifyContent: 'center', marginBottom: theme.spacing[2] }}>
-          {outcome === 'passed' && (
-            <Pulse to={1.09} ms={1600} style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-              <View
-                style={{
-                  position: 'absolute',
-                  width: 156,
-                  height: 156,
-                  borderRadius: theme.radii.full,
-                  backgroundColor: alpha(theme.colors.successSubtle, 0.45),
-                }}
-              />
-              <View
-                style={{
-                  position: 'absolute',
-                  width: 120,
-                  height: 120,
-                  borderRadius: theme.radii.full,
-                  backgroundColor: theme.colors.successSubtle,
-                }}
-              />
-            </Pulse>
-          )}
-          <PopIn>
-            <NeuBox
-              variant="raised"
-              radius={theme.radii.full}
-              depth={8}
-              color={conf.bg}
-              style={{ width: 88, height: 88, alignItems: 'center', justifyContent: 'center' }}>
-              <IconCmp size={40} color={conf.fg} />
-            </NeuBox>
-          </PopIn>
-        </View>
+        <HeroGlyph icon={outcome === 'passed' ? Check : X} tone={outcome === 'passed' ? 'success' : 'error'} size={160} />
         <FadeUp delay={140}>
           <Typography variant="h2" center>
             {conf.title}

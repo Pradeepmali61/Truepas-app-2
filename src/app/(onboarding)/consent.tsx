@@ -1,13 +1,12 @@
 import { useRouter } from 'expo-router';
 import { Info, ScanFace, ShieldCheck, type LucideIcon } from 'lucide-react-native';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from '@/components/composite/Toast';
 import { Button } from '@/components/ui/Button';
-import { Divider } from '@/components/ui/Divider';
-import { NeuBox, NeuWell } from '@/components/ui/NeuBox';
-import { Typography } from '@/components/ui/Typography';
+import { Aura, HeroGlyph, ListGroup, ListRow, RowGlyph } from '@/components/luxe';
+import { FadeUp } from '@/components/ui';
 import { useBiometricConsent } from '@/features/auth/mutations';
 import { biometricConsentGiven } from '@/features/auth/slice';
 import { useLogoutFlow } from '@/features/auth/useLogoutFlow';
@@ -62,69 +61,64 @@ export default function ConsentScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={styles.safe}>
-      <ScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled">
-        <View style={styles.body}>
-          <View style={styles.hero}>
-            <NeuBox variant="raised" radius={t.radii.full} depth={8} style={styles.heroBadge}>
-              <ScanFace size={t.iconSize.xl} color={t.colors.actionPrimary} />
-            </NeuBox>
-            <Typography variant="h2" center>
-              Faster check-in with your face
-            </Typography>
-            <Typography color="secondary" center>
-              Truepas verifies it&apos;s really you at venues — one glance, no phone, no wallet.
-            </Typography>
+    <View style={styles.safe}>
+      <Aura height={480} />
+      <SafeAreaView edges={['top']} style={styles.flex}>
+        <ScrollView
+          style={styles.flex}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled">
+          <View style={styles.body}>
+            <View style={styles.hero}>
+              <HeroGlyph icon={ScanFace} />
+              <FadeUp delay={120}>
+                <Text style={styles.title}>Check in with{'\n'}just a glance</Text>
+              </FadeUp>
+              <FadeUp delay={180}>
+                <Text style={styles.sub}>
+                  Truepas confirms it&apos;s really you at venues — no phone, no wallet, no queue.
+                </Text>
+              </FadeUp>
+            </View>
+
+            <FadeUp delay={260}>
+              <ListGroup>
+                {POINTS.map((p, i) => (
+                  <ListRow
+                    key={p.title}
+                    leading={<RowGlyph icon={p.icon} tone={i === 1 ? 'success' : i === 2 ? 'neutral' : 'brand'} size={40} />}
+                    title={p.title}
+                    subtitle={p.body}
+                    subtitleLines={4}
+                  />
+                ))}
+              </ListGroup>
+            </FadeUp>
           </View>
+        </ScrollView>
 
-          <NeuBox variant="raised" depth={5} color={t.colors.surface} style={styles.card}>
-            {POINTS.map((p, i) => (
-              <View key={p.title}>
-                {i > 0 && <Divider />}
-                <View style={styles.pointRow}>
-                  <NeuWell radius={t.radii.full} style={styles.pointIcon}>
-                    <p.icon size={t.iconSize.md} color={t.colors.actionPrimary} />
-                  </NeuWell>
-                  <View style={styles.pointText}>
-                    <Typography variant="body" style={styles.pointTitle}>
-                      {p.title}
-                    </Typography>
-                    <Typography variant="body-sm" color="muted">
-                      {p.body}
-                    </Typography>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </NeuBox>
+        <View style={[styles.footer, { paddingBottom: t.spacing[4] + insets.bottom }]}>
+          <Button
+            fullWidth
+            size="lg"
+            loading={biometricConsent.isPending}
+            disabled={loading}
+            onPress={accept}
+            accessibilityLabel="Accept and continue">
+            Accept and continue
+          </Button>
+          <Button
+            fullWidth
+            variant="ghost"
+            disabled={loading}
+            onPress={logout}
+            accessibilityLabel="Sign out instead">
+            Sign out instead
+          </Button>
         </View>
-      </ScrollView>
-
-      <View style={[styles.footer, { paddingBottom: t.spacing[4] + insets.bottom }]}>
-        <Button
-          fullWidth
-          size="lg"
-          loading={biometricConsent.isPending}
-          disabled={loading}
-          onPress={accept}
-          accessibilityLabel="Accept and continue">
-          Accept and continue
-        </Button>
-        <Button
-          fullWidth
-          variant="ghost"
-          disabled={loading}
-          onPress={logout}
-          style={styles.signOut}
-          accessibilityLabel="Sign out instead">
-          Sign out instead
-        </Button>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -132,34 +126,16 @@ const useStyles = makeStyles((t) => ({
   safe: { flex: 1, backgroundColor: t.colors.background },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: t.spacing[6] },
-  body: { flex: 1, gap: t.spacing[6], paddingHorizontal: t.spacing[4], paddingTop: t.spacing[4] },
-  hero: {
-    alignItems: 'center',
-    gap: t.spacing[3],
-    paddingTop: t.spacing[8],
-    paddingBottom: t.spacing[2],
+  body: { flex: 1, gap: t.spacing[6], paddingHorizontal: t.sizes.screenGutter, paddingTop: t.spacing[2] },
+  hero: { alignItems: 'center', gap: t.spacing[3] },
+  title: {
+    fontFamily: t.fontFamily.display.bold,
+    fontSize: 32,
+    lineHeight: 37,
+    letterSpacing: -1.1,
+    textAlign: 'center',
+    color: t.colors.textPrimary,
   },
-  heroBadge: {
-    width: 96,
-    height: 96,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: t.spacing[2],
-  },
-  card: { padding: t.spacing[4], gap: t.spacing[3] },
-  footer: {
-    paddingHorizontal: t.spacing[4],
-    paddingTop: t.spacing[4],
-    gap: t.spacing[2],
-  },
-  signOut: { marginTop: t.spacing[4] },
-  pointRow: { flexDirection: 'row', alignItems: 'flex-start', gap: t.spacing[3] },
-  pointIcon: {
-    width: t.sizes.touchTarget,
-    height: t.sizes.touchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pointText: { flex: 1, gap: t.spacing[0.5] },
-  pointTitle: { fontWeight: t.fontWeight.semibold },
+  sub: { fontSize: 15.5, lineHeight: 23, textAlign: 'center', color: t.colors.textSecondary, paddingHorizontal: t.spacing[2] },
+  footer: { paddingHorizontal: t.sizes.screenGutter, paddingTop: t.spacing[3], gap: t.spacing[1] },
 }));

@@ -10,3 +10,4 @@ export { BookingTile } from "./BookingTile";
 export { DOC_ART, DocPass } from "./DocPass";
 export { LargeTitle } from "./LargeTitle";
 export { StatusPill } from "./StatusPill";
+export { HeroGlyph, type HeroTone } from "./HeroGlyph";
