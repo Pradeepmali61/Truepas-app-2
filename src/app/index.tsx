@@ -6,6 +6,7 @@ import { api } from '@/api';
 import { getOrRefreshAccessToken, SessionExpiredError } from '@/api/client';
 import { Spinner } from '@/components/ui';
 import { sessionStarted } from '@/features/auth/slice';
+import { DEMO_MODE } from '@/features/demo/config';
 import { secureStorage } from '@/services/secureStorage';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { useThemeTokens } from '@/theme';
@@ -14,6 +15,12 @@ import { useThemeTokens } from '@/theme';
  *  then routes — unauthenticated → welcome; no face → mandatory
  *  enrollment (PRD); else tabs. */
 export default function Index() {
+  // Design preview builds open on the screen catalogue.
+  if (DEMO_MODE) return <Redirect href={'/demo' as never} />;
+  return <SessionGate />;
+}
+
+function SessionGate() {
   const dispatch = useAppDispatch();
   const theme = useThemeTokens();
   const { status, faceEnrolled } = useAppSelector((state) => state.auth);

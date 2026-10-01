@@ -5,10 +5,12 @@ import { AppState, Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
+import { setDevMockApi } from '@/api';
 import { SessionExpiredError, setOnSessionExpired } from '@/api/client';
 import { FieldLabelStyleProvider, ToastProvider } from '@/components/composite';
 import { DevFloatingButton } from '@/components/layout/DevFloatingButton';
 import { sessionEnded } from '@/features/auth/slice';
+import { DEMO_MODE } from '@/features/demo/config';
 import { clearAllDocumentImages } from '@/services/documentImageStore';
 import { clearAllProfileImages } from '@/services/profileImageStore';
 import { store } from '@/store';
@@ -27,6 +29,9 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Design preview: never touch the real backend.
+if (DEMO_MODE) setDevMockApi(true);
 
 // React Query only knows about browser focus. On native, tell it when the app
 // returns to the foreground so stale queries (e.g. check-in history after a
@@ -83,6 +88,7 @@ function RootStack() {
         contentStyle: { backgroundColor: theme.colors.background },
       }}>
       <Stack.Screen name="dev" />
+      <Stack.Screen name="demo" options={{ animation: 'fade' }} />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />
       <Stack.Screen name="(tabs)" />
