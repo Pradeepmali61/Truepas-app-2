@@ -1,18 +1,18 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Lock, Mail, Phone } from 'lucide-react-native';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { api } from '@/api';
 import { toApiError } from '@/api/errors';
 import { TruepasIcon } from '@/components/app/TruepasIcon';
 import { Alert, FormField, ScreenHeader, Section } from '@/components/composite';
+import { Aura } from '@/components/luxe';
 import {
     CoreButton,
     Input,
     Link,
-    NeuBox,
     NeuSegmented,
     Select,
     Typography
@@ -108,38 +108,27 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: t.colors.background }}>
+    <View style={styles.screen}>
+      <Aura height={420} intensity={0.8} />
+      <SafeAreaView edges={['top']} style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScreenHeader onBack={() => router.back()} />
         <ScrollView
           {...kbd.scrollProps}
           contentContainerStyle={{
-            padding: t.spacing[4],
-            paddingTop: t.spacing[4],
+            paddingHorizontal: t.sizes.screenGutter,
+            paddingTop: t.spacing[2],
             gap: t.spacing[6],
             flexGrow: 1,
           }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={styles.brand}>
-            <NeuBox
-              variant="raised"
-              radius={t.radii.lg}
-              depth={4}
-              color={t.colors.actionPrimary}
-              style={styles.brandIcon}>
-              <TruepasIcon size={t.iconSize.sm} color={t.colors.onActionPrimary} />
-            </NeuBox>
-            <Typography variant="h4">Truepas</Typography>
-          </View>
-
           <View style={styles.heading}>
-            <Typography variant="h2" center>
-              Welcome back
-            </Typography>
-            <Typography color="secondary" center>
-              Sign in with your email or phone.
-            </Typography>
+            <View style={styles.brandIcon}>
+              <TruepasIcon size={20} color="#ffffff" />
+            </View>
+            <Text style={styles.title}>Welcome back</Text>
+            <Text style={styles.sub}>Sign in to your Truepas pass with your email or phone.</Text>
           </View>
 
           {reason === 'session-expired' ? (
@@ -181,7 +170,7 @@ export default function LoginScreen() {
                     setFormError(null);
                   }}
                   containerStyle={styles.labelledControl}
-                  iconLeft={<Mail size={t.iconSize.md} color={t.colors.actionPrimary} />}
+                  iconLeft={<Mail size={t.iconSize.md} color={t.colors.textMuted} />}
                 />
               ) : (
                 <View style={styles.phoneRow}>
@@ -209,7 +198,7 @@ export default function LoginScreen() {
                     }}
                     state={identifierError ? 'error' : 'default'}
                     containerStyle={styles.phoneInput}
-                    iconLeft={<Phone size={t.iconSize.md} color={t.colors.actionPrimary} />}
+                    iconLeft={<Phone size={t.iconSize.md} color={t.colors.textMuted} />}
                   />
                 </View>
               )}
@@ -225,7 +214,7 @@ export default function LoginScreen() {
                   setFormError(null);
                 }}
                 containerStyle={styles.labelledControl}
-                iconLeft={<Lock size={t.iconSize.md} color={t.colors.actionPrimary} />}
+                iconLeft={<Lock size={t.iconSize.md} color={t.colors.textMuted} />}
               />
             </FormField>
 
@@ -246,7 +235,7 @@ export default function LoginScreen() {
         <View
           {...kbd.footerProps}
           style={{
-            paddingHorizontal: t.spacing[4],
+            paddingHorizontal: t.sizes.screenGutter,
             paddingTop: t.spacing[6],
             paddingBottom: t.spacing[4] + insets.bottom,
             gap: t.spacing[2],
@@ -265,28 +254,41 @@ export default function LoginScreen() {
           </Typography>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const useStyles = makeStyles((t) => ({
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: t.spacing[2],
-  },
+  screen: { flex: 1, backgroundColor: t.colors.background },
+  heading: { gap: t.spacing[2], paddingTop: t.spacing[2] },
   brandIcon: {
-    width: 36,
-    height: 36,
+    width: 52,
+    height: 52,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: t.colors.actionPrimary,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    shadowColor: t.colors.actionPrimary,
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 10,
+    marginBottom: t.spacing[3],
   },
-  heading: { alignItems: 'center', gap: t.spacing[1] },
-  phoneRow: { flexDirection: 'row', gap: t.spacing[2], marginTop: 20 },
-  // Drop controls below the label chip so the two don't touch.
-  labelledControl: { marginTop: 20 },
-  ccSelect: { width: 122 },
+  title: {
+    fontFamily: t.fontFamily.display.bold,
+    fontSize: 34,
+    lineHeight: 40,
+    letterSpacing: -1.2,
+    color: t.colors.textPrimary,
+  },
+  sub: { fontSize: 15.5, lineHeight: 23, color: t.colors.textSecondary },
+  phoneRow: { flexDirection: 'row', gap: t.spacing[2] },
+  labelledControl: {},
+  ccSelect: { width: 118 },
   phoneInput: { flex: 1 },
   helperRow: { flexDirection: 'row', justifyContent: 'flex-end' },
 }));

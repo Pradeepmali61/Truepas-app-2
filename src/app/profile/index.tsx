@@ -1,23 +1,22 @@
 /**
- * ProfileScreen — profile tab. Account card plus the shared ProfileMenu
- * (settings, sign out).
- * Ported 1:1 from UI-design-repo `src/app/screens/main/ProfileScreen.tsx`.
+ * ProfileScreen — identity hero (gradient-ringed avatar, name, verified
+ * pill, contact line) over the grouped ProfileMenu.
  */
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Mail, Phone } from 'lucide-react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LoadingState, ProfileMenu, ScreenHeader } from '@/components/composite';
-import { Avatar, NeuBox, StatusChip, Typography } from '@/components/ui';
+import { Aura, StatusPill } from '@/components/luxe';
+import { Avatar } from '@/components/ui';
 import { useProfilePicture } from '@/features/profile/hooks';
 import { useAppSelector } from '@/store';
 import { makeStyles, useThemeTokens } from '@/theme';
-import { iconSize } from '@/theme/tokens';
 
 export default function ProfileScreen() {
   const styles = useStyles();
-  const theme = useThemeTokens();
+  const t = useThemeTokens();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const user = useAppSelector((state) => state.auth.user);
@@ -25,7 +24,7 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView edges={['top']} style={styles.screen}>
         <ScreenHeader title="Profile" />
         <LoadingState fullPage />
       </SafeAreaView>
@@ -33,51 +32,64 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScreenHeader title="Profile" onBack={() => router.back()} />
-      <ScrollView
-        contentContainerStyle={{
-          padding: theme.spacing[4],
-          gap: theme.spacing[6],
-          paddingBottom: theme.spacing[8] + insets.bottom,
-        }}
-        showsVerticalScrollIndicator={false}>
-        {/* ---------- account card ---------- */}
-        <NeuBox variant="raised" style={styles.card}>
-          <View style={styles.headRow}>
-            <Avatar name={user.fullName} uri={profilePictureUrl ?? undefined} size="lg" />
-            <View style={styles.flex}>
-              <Typography variant="h4" numberOfLines={1}>
-                {user.fullName}
-              </Typography>
-              <StatusChip status={user.faceEnrolled ? 'verified' : 'missing'} />
+    <View style={styles.screen}>
+      <Aura height={460} />
+      <SafeAreaView edges={['top']} style={styles.flex}>
+        <ScreenHeader onBack={() => router.back()} />
+        <ScrollView
+          contentContainerStyle={[styles.body, { paddingBottom: t.spacing[10] + insets.bottom }]}
+          showsVerticalScrollIndicator={false}>
+          {/* ---------- identity hero ---------- */}
+          <View style={styles.hero}>
+            <View style={styles.ringWrap}>
+              <LinearGradient
+                colors={[t.brand.b500, t.combo?.accent.b500 ?? t.colors.accent, t.brand.b700]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.ring}
+              />
+              <View style={styles.ringGap}>
+                <Avatar name={user.fullName} uri={profilePictureUrl ?? undefined} size="xxl" />
+              </View>
             </View>
-          </View>
-          <View style={styles.infoRow}>
-            <Mail size={iconSize.sm} color={theme.colors.textMuted} />
-            <Text style={styles.info} numberOfLines={1}>
+            <Text style={styles.name} numberOfLines={1}>
+              {user.fullName}
+            </Text>
+            <StatusPill
+              status={user.faceEnrolled ? 'verified' : 'pending'}
+              label={user.faceEnrolled ? 'Verified identity' : 'Verification pending'}
+              style={styles.pill}
+            />
+            <Text style={styles.contact} numberOfLines={1}>
               {user.email}
             </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Phone size={iconSize.sm} color={theme.colors.textMuted} />
-            <Text style={styles.info} numberOfLines={1}>
+            <Text style={styles.contactMono} numberOfLines={1}>
               {user.phone}
             </Text>
           </View>
-        </NeuBox>
 
-        {/* ---------- menu ---------- */}
-        <ProfileMenu />
-      </ScrollView>
-    </SafeAreaView>
+          <ProfileMenu />
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const useStyles = makeStyles((t) => ({
+  screen: { flex: 1, backgroundColor: t.colors.background },
   flex: { flex: 1 },
-  card: { padding: t.spacing[4], gap: t.spacing[3] },
-  headRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing[3] },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: t.spacing[2] },
-  info: { flex: 1, fontSize: t.fontSize.base, color: t.colors.textSecondary },
+  body: { paddingHorizontal: t.sizes.screenGutter, gap: t.spacing[6] },
+  hero: { alignItems: 'center', gap: 6, paddingBottom: t.spacing[2] },
+  ringWrap: { width: 108, height: 108, alignItems: 'center', justifyContent: 'center', marginBottom: t.spacing[3] },
+  ring: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 54 },
+  ringGap: { padding: 3, borderRadius: 52, backgroundColor: t.colors.background },
+  name: {
+    fontFamily: t.fontFamily.display.bold,
+    fontSize: 26,
+    letterSpacing: -0.8,
+    color: t.colors.textPrimary,
+  },
+  pill: { alignSelf: 'center', marginTop: 2, marginBottom: 6 },
+  contact: { fontSize: 14, color: t.colors.textSecondary },
+  contactMono: { fontSize: 13, fontFamily: t.fontFamily.mono.regular, color: t.colors.textMuted },
 }));

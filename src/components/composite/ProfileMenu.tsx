@@ -1,23 +1,18 @@
 /**
- * ProfileMenu — the settings menu on ProfileScreen: account actions,
- * delete account, version footer, and the sign-out action sheet.
- *
- * Ported from UI-design-repo `src/app/ui/ProfileMenu.tsx` — the mock/live
- * "Data source" tile and its picker sheet are intentionally omitted (the
- * app has a single hosted backend; demo browsing lives in dev.tsx).
+ * ProfileMenu — the grouped settings list on ProfileScreen (and the profile
+ * drawer): account, family & privacy, support, sign out and delete account,
+ * version footer, and the sign-out confirmation sheet.
  */
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { LogOut, Palette, Pencil, ShieldCheck, Trash2 } from "lucide-react-native";
+import { CircleHelp, FileLock2, Info, LogOut, Palette, Pencil, ShieldCheck, Trash2, Users } from "lucide-react-native";
 import { useState } from "react";
 import { Text, View } from "react-native";
 import { useLogoutFlow } from "../../features/auth/useLogoutFlow";
 import { makeStyles, useThemeTokens } from "../../theme";
 import { iconSize } from "../../theme/tokens";
-import { Typography } from "../ui/Typography";
+import { ListGroup, ListRow, RowGlyph } from "../luxe/ListGroup";
 import { ActionSheet } from "./ActionSheet";
-import { ListTile } from "./ListTile";
-import { Section, SectionTitle } from "./Section";
 
 export function ProfileMenu({ onNavigate }: { onNavigate?: () => void }) {
   const styles = useStyles();
@@ -32,33 +27,37 @@ export function ProfileMenu({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <Section>
-        <SectionTitle>Account</SectionTitle>
-        <ListTile icon={Pencil} tone="brand" title="Edit profile" onPress={() => go("/profile/edit")} />
-        <ListTile icon={ShieldCheck} tone="brand" title="Security & sign-in" onPress={() => go("/security")} />
-        <ListTile icon={Palette} tone="brand" title="Appearance" onPress={() => go("/settings")} />
-        <ListTile icon={LogOut} tone="brand" title="Sign out" onPress={() => setConfirmSignOut(true)} />
-      </Section>
-
-      <Section>
-        <SectionTitle>Data</SectionTitle>
-        <ListTile
-          icon={Trash2}
-          title={
-            <Text style={{ color: t.colors.error, fontWeight: t.fontWeight.semibold }}>
-              Delete account
-            </Text>
-          }
-          tone="error"
-          onPress={() => go("/account/delete")}
-        />
-      </Section>
-
-      <View style={styles.footerMeta}>
-        <Typography variant="caption" color="muted">
-          Truepas {Constants.expoConfig?.version ?? "1.0.0"}
-        </Typography>
+      <View style={styles.group}>
+        <Text style={styles.groupLabel}>Account</Text>
+        <ListGroup>
+          <ListRow leading={<RowGlyph icon={Pencil} />} title="Personal details" subtitle="Name, email, phone, photo" onPress={() => go("/profile/edit")} />
+          <ListRow leading={<RowGlyph icon={ShieldCheck} tone="success" />} title="Security & sign-in" subtitle="Password, PIN, face" onPress={() => go("/security")} />
+          <ListRow leading={<RowGlyph icon={Palette} tone="neutral" />} title="Appearance" onPress={() => go("/settings")} />
+        </ListGroup>
       </View>
+
+      <View style={styles.group}>
+        <Text style={styles.groupLabel}>Family & privacy</Text>
+        <ListGroup>
+          <ListRow leading={<RowGlyph icon={Users} />} title="Family members" onPress={() => go("/family")} />
+          <ListRow leading={<RowGlyph icon={FileLock2} tone="neutral" />} title="Data & privacy" onPress={() => go("/legal/data-privacy")} />
+        </ListGroup>
+      </View>
+
+      <View style={styles.group}>
+        <Text style={styles.groupLabel}>Support</Text>
+        <ListGroup>
+          <ListRow leading={<RowGlyph icon={CircleHelp} tone="neutral" />} title="Help centre" onPress={() => go("/help")} />
+          <ListRow leading={<RowGlyph icon={Info} tone="neutral" />} title="About Truepas" onPress={() => go("/about")} />
+        </ListGroup>
+      </View>
+
+      <ListGroup>
+        <ListRow leading={<RowGlyph icon={LogOut} tone="neutral" />} title="Sign out" chevron={false} onPress={() => setConfirmSignOut(true)} />
+        <ListRow leading={<RowGlyph icon={Trash2} tone="error" />} title="Delete account" destructive onPress={() => go("/account/delete")} />
+      </ListGroup>
+
+      <Text style={styles.version}>Truepas {Constants.expoConfig?.version ?? "1.0.0"}</Text>
 
       <ActionSheet
         visible={confirmSignOut}
@@ -79,10 +78,14 @@ export function ProfileMenu({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 const useStyles = makeStyles((t) => ({
-  footerMeta: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: t.spacing[2],
+  group: { gap: t.spacing[2] },
+  groupLabel: {
+    fontSize: 12,
+    fontWeight: t.fontWeight.semibold,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    color: t.colors.textMuted,
+    marginLeft: t.spacing[1],
   },
+  version: { textAlign: "center", fontSize: 12, color: t.colors.textMuted, fontFamily: t.fontFamily.mono.regular },
 }));

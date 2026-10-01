@@ -6,3 +6,7 @@ export { PressableScale } from "./PressableScale";
 export { QuickAction } from "./QuickAction";
 export { SectionHeader } from "./SectionHeader";
 export { venueImage } from "./venueImage";
+export { BookingTile } from "./BookingTile";
+export { DOC_ART, DocPass } from "./DocPass";
+export { LargeTitle } from "./LargeTitle";
+export { StatusPill } from "./StatusPill";

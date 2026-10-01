@@ -81,7 +81,7 @@ export function Button({
       {filled && (
         <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.fillClip, styles[`${size}Radius`]]}>
           <LinearGradient
-            colors={isDisabled ? [theme.colors.actionPrimaryDisabled, theme.colors.actionPrimaryDisabled] : gradient}
+            colors={gradient}
             start={{ x: 0, y: 0.2 }}
             end={{ x: 1, y: 0.8 }}
             style={StyleSheet.absoluteFill}
@@ -180,6 +180,6 @@ const useStyles = makeStyles((t) => ({
   linkPressed: { opacity: 0.7 },
   linkLabel: { color: t.colors.textLink },
 
-  disabled: { opacity: 0.55 },
+  disabled: { opacity: 0.4 },
   icon: {},
 }));

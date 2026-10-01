@@ -1,25 +1,22 @@
-/** @jsxImportSource react */
 /**
- * Check-ins tab — bookings split into Upcoming / Past sections, each
- * rendered with the kit BookingCard and drilling into booking detail.
- * Ported 1:1 from UI-design-repo src/app/screens/main/ActivityScreen.tsx.
+ * Check-ins tab — bookings split into Upcoming / Past under a large title,
+ * each rendered as a photo BookingTile that drills into booking detail.
  */
 import { useFocusEffect, useRouter } from 'expo-router';
 import { CalendarClock } from 'lucide-react-native';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AsyncBlock, EmptyState, ScreenHeader, Section, SkeletonRows } from '@/components/composite';
-import { BookingCard } from '@/components/truepas';
+import { AsyncBlock, SkeletonRows } from '@/components/composite';
+import { Aura, BookingTile, LargeTitle, ListGroup, ListRow, RowGlyph } from '@/components/luxe';
 import { FadeUp, NeuSegmented } from '@/components/ui';
 import { useBookings } from '@/features/history/hooks';
 import { makeStyles, useThemeTokens } from '@/theme';
-import { iconSize } from '@/theme/tokens';
 import type { Booking } from '@/types/domain';
 
-/** Height of the custom bottom tab bar (see (tabs)/_layout.tsx). */
-const TAB_BAR_HEIGHT = 88;
+/** Height of the floating tab bar (see (tabs)/_layout.tsx). */
+const TAB_BAR_HEIGHT = 84;
 
 /** History tab — GET /cb/bookings. The check-in event producer isn't connected
  *  yet so an empty list is a valid production state, not an error. */
@@ -45,84 +42,86 @@ export default function HistoryScreen() {
 
   const renderCard = (b: Booking, i: number) => (
     <FadeUp key={b.id} delay={Math.min(i, 8) * 60}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${b.venue}, ${b.location}`}
+      <BookingTile
+        venue={b.venue}
+        location={b.location}
+        type={b.type}
+        image={b.image}
+        status={b.status}
+        checkIn={b.checkIn}
+        checkOut={b.checkOut}
+        guests={b.guests}
+        amount={b.amount}
+        checkedIn={b.checkedInMembers?.length ?? 0}
         onPress={() => router.push(`/booking/${b.id}` as never)}
-        style={({ pressed }) => pressed && styles.pressed}>
-        <BookingCard booking={{ ...b, checkedInMembers: b.checkedInMembers ?? [] }} />
-      </Pressable>
+      />
     </FadeUp>
   );
 
+  const empty = (title: string, subtitle: string) => (
+    <ListGroup>
+      <ListRow leading={<RowGlyph icon={CalendarClock} tone="neutral" size={40} />} title={title} subtitle={subtitle} />
+    </ListGroup>
+  );
+
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScreenHeader title="Check-ins" />
-      <ScrollView
-        refreshControl={
-          <RefreshControl
-            refreshing={bookingsQuery.isRefetching}
-            onRefresh={bookingsQuery.refetch}
-            tintColor={theme.colors.actionPrimary}
-            colors={[theme.colors.actionPrimary]}
-          />
-        }
-        contentContainerStyle={{
-          padding: theme.spacing[4],
-          gap: theme.spacing[6],
-          paddingBottom: TAB_BAR_HEIGHT + insets.bottom + theme.spacing[4],
-          flexGrow: 1,
-        }}>
-        <AsyncBlock state={bookingsQuery} skeleton={<SkeletonRows />}>
-          {(list) => {
-            if (list.length === 0) {
+    <View style={styles.screen}>
+      <Aura height={420} intensity={0.6} />
+      <SafeAreaView edges={['top']} style={styles.flex}>
+        <LargeTitle eyebrow="Your stays & visits" title="Check-ins" />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={bookingsQuery.isRefetching}
+              onRefresh={bookingsQuery.refetch}
+              tintColor={theme.colors.textSecondary}
+              colors={[theme.colors.actionPrimary]}
+            />
+          }
+          contentContainerStyle={[styles.body, { paddingBottom: TAB_BAR_HEIGHT + insets.bottom + theme.spacing[6] }]}>
+          <AsyncBlock state={bookingsQuery} skeleton={<SkeletonRows />}>
+            {(list) => {
+              if (list.length === 0) {
+                return empty('No bookings yet', 'Your history appears here after your first check-in.');
+              }
+              const upcomingList = list.filter((b) => b.status === 'upcoming');
+              const past = list.filter((b) => b.status !== 'upcoming');
+              /* Land on Past when there's nothing upcoming. */
+              const effective = view === 'upcoming' && upcomingList.length === 0 ? 'past' : view;
+              const shown = effective === 'upcoming' ? upcomingList : past;
               return (
-                <EmptyState
-                  title="No bookings yet"
-                  description="History appears here after your first check-in."
-                  icon={<CalendarClock size={iconSize.lg} color={theme.colors.textMuted} />}
-                />
-              );
-            }
-            const upcomingList = list.filter((b) => b.status === 'upcoming');
-            const past = list.filter((b) => b.status !== 'upcoming');
-            /* Land on Past when there's nothing upcoming. */
-            const effective = view === 'upcoming' && upcomingList.length === 0 ? 'past' : view;
-            const shown = effective === 'upcoming' ? upcomingList : past;
-            return (
-              <Section>
-                <NeuSegmented
-                  label="Check-ins"
-                  options={[
-                    { value: 'upcoming', label: `Upcoming (${upcomingList.length})` },
-                    { value: 'past', label: `Past (${past.length})` },
-                  ]}
-                  value={effective}
-                  onChange={setView}
-                />
-                {shown.length === 0 ? (
-                  <EmptyState
-                    compact
-                    title={effective === 'upcoming' ? 'No upcoming check-ins' : 'No past check-ins'}
-                    description={
-                      effective === 'upcoming'
-                        ? 'Booked venues will show up here before your visit.'
-                        : 'History appears here after your first check-in.'
-                    }
-                    icon={<CalendarClock size={iconSize.lg} color={theme.colors.textMuted} />}
+                <View style={styles.list}>
+                  <NeuSegmented
+                    label="Check-ins"
+                    options={[
+                      { value: 'upcoming', label: `Upcoming · ${upcomingList.length}` },
+                      { value: 'past', label: `Past · ${past.length}` },
+                    ]}
+                    value={effective}
+                    onChange={setView}
                   />
-                ) : (
-                  shown.map(renderCard)
-                )}
-              </Section>
-            );
-          }}
-        </AsyncBlock>
-      </ScrollView>
-    </SafeAreaView>
+                  {shown.length === 0
+                    ? empty(
+                        effective === 'upcoming' ? 'No upcoming check-ins' : 'No past check-ins',
+                        effective === 'upcoming'
+                          ? 'Booked venues show up here before your visit.'
+                          : 'History appears here after your first check-in.',
+                      )
+                    : shown.map(renderCard)}
+                </View>
+              );
+            }}
+          </AsyncBlock>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const useStyles = makeStyles((t) => ({
-  pressed: { opacity: t.opacity.pressed },
+  screen: { flex: 1, backgroundColor: t.colors.background },
+  flex: { flex: 1 },
+  body: { paddingHorizontal: t.sizes.screenGutter, paddingTop: t.spacing[3], flexGrow: 1 },
+  list: { gap: t.spacing[4] },
 }));
