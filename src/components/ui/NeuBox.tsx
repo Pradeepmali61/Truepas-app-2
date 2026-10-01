@@ -1,27 +1,29 @@
 /**
- * Neumorphic (soft-UI) primitive — ported from UI-design-repo `src/app/ui/neu.tsx`.
+ * Surface primitive — the Midnight Luxe card. (Name kept from the neumorphic
+ * era so every screen restyles without call-site churn.)
  *
- * RN supports one shadow per view, so the classic dual-shadow look is
- * composed: two absolutely-filled sibling layers — a light highlight toward
- * the top-left and a dark shadow toward the bottom-right — sit on an
- * UNCLIPPED outer wrapper behind a clipped inner view that carries the fill
- * and content. Android falls back to elevation on the dark shadow layer.
+ *   <NeuBox variant="raised">…</NeuBox>  — layered card: graphite fill, hairline
+ *                                           rim, top sheen, deep diffuse shadow
+ *   <NeuBox variant="inset">…</NeuBox>   — sunken well: darker fill, faint rim
+ *   <NeuBox variant="flat">…</NeuBox>    — rimmed surface, no shadow
  *
- *   <NeuBox variant="raised">…</NeuBox>     — extruded card/tile
- *   <NeuBox variant="inset">…</NeuBox>      — pressed-in well/track
+ * Elevation in a dark UI reads from *light*, not shadow: a slightly lighter
+ * fill, a 1px rim and a sheen across the top edge. The shadow sits on an
+ * unclipped outer host; paint and content live on a clipped inner view.
  */
+import { LinearGradient } from "expo-linear-gradient";
 import type { LucideIcon } from "lucide-react-native";
 import { useState, type ReactNode } from "react";
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { alpha, mix, useThemeTokens } from "../../theme";
+import { alpha, useThemeTokens } from "../../theme";
 
 export type NeuVariant = "raised" | "inset" | "flat";
 
 /**
  * Caller-style keys that describe the *inside* of the box — paint, padding,
  * child layout and corner radii. They move to the clipped inner view so the
- * outer shadow host stays unclipped and unpainted; every other key (size,
- * position, margins, opacity…) stays on the host.
+ * outer shadow host stays unclipped; every other key (size, position,
+ * margins, opacity…) stays on the host.
  */
 const RADIUS_KEYS = new Set([
   "borderRadius",
@@ -75,11 +77,11 @@ const INNER_STYLE_KEYS = new Set([
 
 export interface NeuBoxProps {
   variant?: NeuVariant;
-  /** Corner radius — defaults to the theme xl radius (soft-UI: 22). */
+  /** Corner radius — defaults to the theme xl radius. */
   radius?: number;
-  /** Fill color — defaults to the screen background so the shadows read. */
+  /** Fill color — defaults to the surface (raised/flat) or sunken (inset) tone. */
   color?: string;
-  /** Shadow reach in dp (distance + blur driver). Default 6. */
+  /** Shadow reach in dp. Default 6. */
   depth?: number;
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
@@ -87,22 +89,10 @@ export interface NeuBoxProps {
 
 export function NeuBox({ variant = "raised", radius, color, depth = 6, style, children }: NeuBoxProps) {
   const t = useThemeTokens();
+  const dark = t.scheme === "dark";
   const r = radius ?? t.radii.xl;
-  const fill = color ?? t.colors.background;
-  // Shadow colors derive from the theme so single-brand palettes (combo null)
-  // stay on-hue: dark = background pulled toward a dark neutral/brand dark,
-  // light = background pulled toward white (a raised highlight in dark mode).
-  const dark =
-    t.combo?.neutral.shadow ??
-    mix(t.colors.background, t.scheme === "dark" ? t.colors.textInverse : t.brand.b700, t.scheme === "dark" ? 0.75 : 0.5);
-  const light =
-    t.scheme === "dark" ? alpha(t.colors.surfaceRaised, 0.12) : mix(t.colors.background, t.colors.textInverse, 0.55);
-  const darkO = t.scheme === "dark" ? 0.45 : 0.28;
-  const lightO = t.scheme === "dark" ? 0.5 : 0.9;
+  const fill = color ?? (variant === "inset" ? t.colors.surfaceSunken : t.colors.surface);
 
-  // Split the caller style across the two layers: the outer view hosts the
-  // shadow siblings and must never clip or paint (a background there would
-  // swallow the shadows), so paint/content keys forward to the inner view.
   const flat = StyleSheet.flatten(style) ?? {};
   const outerStyle: ViewStyle = {};
   const innerStyle: ViewStyle = {};
@@ -112,31 +102,26 @@ export function NeuBox({ variant = "raised", radius, color, depth = 6, style, ch
     ((INNER_STYLE_KEYS.has(k) ? innerStyle : outerStyle) as Record<string, unknown>)[k] = v;
   }
   const paint = innerStyle.backgroundColor ?? fill;
+  // A brand-colored fill (solid buttons) gets a colored glow, not a black drop.
+  const tinted = paint === t.colors.actionPrimary;
 
-  // Dark-mode raised surfaces melt into the background — drop shadows barely
-  // read on dark paints — so the inner view gets a hairline light rim that
-  // restores the elevation cue (the top-edge catch the highlight shadow can't
-  // deliver). Skipped when the caller passes any real border key (radius keys
-  // don't count) and applied before innerStyle, so caller borders always win.
-  //
   // BUG010 — never DROP borderWidth once set: on Android, removing it sends
-  // NaN (not null) into BorderInsets, the padding box resolves to NaN and the
-  // overflow-hidden clip swallows every child (card turns blank after a
-  // dark → light switch, or a SoftIconButton raised ↔ inset press in dark).
-  // So the no-rim case sends an explicit 0 instead of omitting the key.
-  const callerHasBorder = Object.keys(innerStyle).some((k) => k.startsWith("border") && !k.endsWith("Radius"));
-  const hairline: ViewStyle | null = callerHasBorder
-    ? null
-    : t.scheme === "dark" && variant === "raised"
-      ? {
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: alpha(t.colors.textPrimary, 0.09),
-        }
-      : { borderWidth: 0 };
+  // NaN into BorderInsets and the overflow-hidden clip swallows every child.
+  // The rim is therefore always an explicit width; caller borders still win.
+  const rim: ViewStyle = {
+    borderWidth: StyleSheet.hairlineWidth * (Platform.OS === "android" ? 2 : 1.5),
+    borderColor:
+      variant === "inset"
+        ? alpha(dark ? "#ffffff" : "#0a0f1a", dark ? 0.045 : 0.06)
+        : tinted
+          ? alpha("#ffffff", 0.18)
+          : dark
+            ? t.colors.border
+            : alpha("#0a0f1a", 0.07),
+  };
 
   // Yoga inflates a flexGrow child even inside an auto-height host when a
-  // bounded column ancestor has free space (yoga#701 legacy stretch) — an
-  // unsized NeuBox then balloons to fill the screen. Grow the inner view
+  // bounded column ancestor has free space (yoga#701) — grow the inner view
   // only when the caller actually sized the host.
   const hostSized =
     outerStyle.height != null ||
@@ -147,91 +132,43 @@ export function NeuBox({ variant = "raised", radius, color, depth = 6, style, ch
     outerStyle.flexBasis != null ||
     outerStyle.aspectRatio != null;
 
-  // BUG015 — collapsable={false}: the host paints nothing, so Fabric flattens
-  // it away until a prop like opacity (SoftIconButton `disabled`) forces a
-  // real view. That un-flatten reparents the shadow layers + inner view, and
-  // on Android the mount fails ("addViewAt … child already has a parent") —
-  // tapping PhotoCapture's capture button crashed the app. Keep it concrete.
+  const shadow: ViewStyle | null =
+    variant === "raised"
+      ? {
+          shadowColor: tinted ? t.colors.actionPrimary : "#000000",
+          shadowOffset: { width: 0, height: Math.round(depth * (tinted ? 1 : 1.4)) },
+          shadowOpacity: tinted ? 0.45 : dark ? 0.55 : 0.08,
+          shadowRadius: depth * (tinted ? 2.2 : 3),
+          ...(Platform.OS === "android" ? { elevation: tinted ? 6 : Math.max(1, Math.round(depth / 2)) } : null),
+        }
+      : null;
+
+  // BUG015 — collapsable={false}: keep the host a concrete view so Fabric
+  // never un-flattens and reparents its children mid-press (Android crash).
   return (
     <View collapsable={false} style={[{ borderRadius: r }, radiusStyle, outerStyle]}>
-      {variant === "raised" && (
-        <>
-          <View
-            pointerEvents="none"
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                borderRadius: r,
-                backgroundColor: paint,
-                shadowColor: dark,
-                shadowOffset: { width: depth, height: depth },
-                shadowOpacity: darkO,
-                shadowRadius: depth * 1.8,
-              },
-              radiusStyle,
-              Platform.OS === "android" ? { elevation: Math.max(2, depth - 2) } : null,
-            ]}
-          />
-          <View
-            pointerEvents="none"
-            style={[
-              StyleSheet.absoluteFill,
-              {
-                borderRadius: r,
-                backgroundColor: paint,
-                shadowColor: light,
-                shadowOffset: { width: -depth, height: -depth },
-                shadowOpacity: lightO,
-                shadowRadius: depth * 1.8,
-              },
-              radiusStyle,
-            ]}
-          />
-        </>
+      {shadow && (
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { borderRadius: r, backgroundColor: paint }, radiusStyle, shadow]}
+        />
       )}
       <View
         style={[
           { alignSelf: "stretch", borderRadius: r, backgroundColor: paint, overflow: "hidden" },
           hostSized && { flexGrow: 1 },
-          hairline,
+          rim,
           innerStyle,
         ]}
       >
-        {variant === "inset" && (
-          <>
-            {/* inner shadow: dark creep from the top-left, light from bottom-right */}
-            <View
-              pointerEvents="none"
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  borderRadius: r,
-                  borderTopWidth: 2,
-                  borderLeftWidth: 2,
-                  borderTopColor: alpha(dark, t.scheme === "dark" ? 0.5 : 0.16),
-                  borderLeftColor: alpha(dark, t.scheme === "dark" ? 0.35 : 0.1),
-                  borderBottomWidth: 2,
-                  borderRightWidth: 2,
-                  borderBottomColor: t.scheme === "dark" ? light : alpha(light, 0.9),
-                  borderRightColor: t.scheme === "dark" ? light : alpha(light, 0.55),
-                },
-                radiusStyle,
-              ]}
-            />
-            <View
-              pointerEvents="none"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: Math.max(10, Math.min(r, t.radii["2xl"]) * 0.55),
-                borderTopLeftRadius: r,
-                borderTopRightRadius: r,
-                backgroundColor: alpha(dark, t.scheme === "dark" ? 0.18 : 0.06),
-              }}
-            />
-          </>
+        {variant !== "inset" && (
+          <LinearGradient
+            pointerEvents="none"
+            colors={[alpha("#ffffff", tinted ? 0.16 : dark ? 0.045 : 0.5), alpha("#ffffff", 0)]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[StyleSheet.absoluteFill, { bottom: "45%" }]}
+          />
         )}
         {children}
       </View>
@@ -245,8 +182,8 @@ export function NeuWell(props: Omit<NeuBoxProps, "variant">) {
   return <NeuBox variant="inset" color={props.color ?? t.colors.surfaceSunken} {...props} />;
 }
 
-/** Round raised icon button (design-repo neu.tsx SoftIconButton) — the
- *  header bell / close affordance. `solid` gives the filled brand variant. */
+/** Round glass icon button — header bell / close affordance. `solid` gives
+ *  the filled brand variant. */
 export interface SoftIconButtonProps {
   icon: LucideIcon;
   onPress?: () => void;
@@ -261,7 +198,7 @@ export interface SoftIconButtonProps {
 export function SoftIconButton({
   icon: IconCmp,
   onPress,
-  size = 48,
+  size = 44,
   solid,
   disabled,
   accessibilityLabel,
@@ -269,7 +206,6 @@ export function SoftIconButton({
 }: SoftIconButtonProps) {
   const t = useThemeTokens();
   const [pressed, setPressed] = useState(false);
-  const controlSize = size + 2;
   return (
     <Pressable
       accessibilityRole="button"
@@ -279,24 +215,27 @@ export function SoftIconButton({
       onPress={onPress}
       onPressIn={() => setPressed(true)}
       onPressOut={() => setPressed(false)}
+      hitSlop={6}
       style={style}
     >
       <NeuBox
-        variant={pressed && !solid ? "inset" : "raised"}
-        radius={controlSize / 2}
-        color={solid ? t.colors.actionPrimary : t.colors.background}
+        variant={solid ? "raised" : "flat"}
+        radius={size / 2}
+        color={solid ? t.colors.actionPrimary : pressed ? t.colors.actionSecondaryPressed : t.colors.surfaceRaised}
         depth={4}
         style={{
-          width: controlSize,
-          height: controlSize,
+          width: size,
+          height: size,
           alignItems: "center",
           justifyContent: "center",
           opacity: disabled ? t.opacity.disabled : 1,
+          transform: [{ scale: pressed ? 0.94 : 1 }],
         }}
       >
         <IconCmp
-          size={Math.round(controlSize * 0.42)}
-          color={solid ? t.colors.onActionPrimary : t.colors.actionPrimary}
+          size={Math.round(size * 0.44)}
+          strokeWidth={1.8}
+          color={solid ? t.colors.onActionPrimary : t.colors.textPrimary}
         />
       </NeuBox>
     </Pressable>

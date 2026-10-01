@@ -32,7 +32,7 @@ export interface TypographyProps extends TextProps {
 
 export function Typography({
   variant = "body",
-  color = "primary",
+  color,
   center,
   style,
   children,
@@ -45,7 +45,7 @@ export function Typography({
       style={[
         styles.base,
         styles[variant],
-        styles[`color-${color}`],
+        styles[`color-${color ?? (variant === "label" ? "muted" : "primary")}`],
         center && styles.center,
         style,
       ]}
@@ -60,20 +60,21 @@ const useStyles = makeStyles((t) => ({
   base: { color: t.colors.textPrimary },
   center: { textAlign: "center" as const },
 
-  display: { fontSize: t.fontSize["4xl"], fontWeight: t.fontWeight.bold, fontFamily: t.fontFamily.display.bold, lineHeight: t.fontSize["4xl"] * t.lineHeight.tight, letterSpacing: t.letterSpacing.tight },
-  h1: { fontSize: t.fontSize["3xl"], fontWeight: t.fontWeight.bold, fontFamily: t.fontFamily.display.bold, lineHeight: t.fontSize["3xl"] * t.lineHeight.tight, letterSpacing: t.letterSpacing.tight },
-  h2: { fontSize: t.fontSize["2xl"], fontWeight: t.fontWeight.semibold, fontFamily: t.fontFamily.display.semibold, lineHeight: t.fontSize["2xl"] * t.lineHeight.tight },
-  h3: { fontSize: t.fontSize.xl, fontWeight: t.fontWeight.semibold, fontFamily: t.fontFamily.display.semibold, lineHeight: t.fontSize.xl * t.lineHeight.snug },
-  h4: { fontSize: t.fontSize.lg, fontWeight: t.fontWeight.semibold, fontFamily: t.fontFamily.display.semibold, lineHeight: t.fontSize.lg * t.lineHeight.snug },
-  "body-lg": { fontSize: t.fontSize.md, lineHeight: t.fontSize.md * t.lineHeight.normal },
-  body: { fontSize: t.fontSize.base, lineHeight: t.fontSize.base * t.lineHeight.normal },
+  display: { fontSize: t.fontSize["4xl"], fontWeight: t.fontWeight.bold, fontFamily: t.fontFamily.display.bold, lineHeight: t.fontSize["4xl"] * 1.08, letterSpacing: -1.4 },
+  h1: { fontSize: t.fontSize["3xl"], fontWeight: t.fontWeight.bold, fontFamily: t.fontFamily.display.bold, lineHeight: t.fontSize["3xl"] * 1.12, letterSpacing: -1 },
+  h2: { fontSize: t.fontSize["2xl"], fontWeight: t.fontWeight.bold, fontFamily: t.fontFamily.display.bold, lineHeight: t.fontSize["2xl"] * 1.18, letterSpacing: -0.7 },
+  h3: { fontSize: t.fontSize.xl, fontWeight: t.fontWeight.semibold, fontFamily: t.fontFamily.display.semibold, lineHeight: t.fontSize.xl * 1.25, letterSpacing: -0.45 },
+  h4: { fontSize: t.fontSize.lg, fontWeight: t.fontWeight.semibold, fontFamily: t.fontFamily.display.semibold, lineHeight: t.fontSize.lg * 1.3, letterSpacing: -0.3 },
+  "body-lg": { fontSize: t.fontSize.md, lineHeight: t.fontSize.md * t.lineHeight.normal, letterSpacing: -0.2 },
+  body: { fontSize: t.fontSize.base, lineHeight: t.fontSize.base * t.lineHeight.normal, letterSpacing: -0.1 },
   "body-sm": { fontSize: t.fontSize.sm, lineHeight: t.fontSize.sm * t.lineHeight.normal },
-  caption: { fontSize: t.fontSize.xs, lineHeight: t.fontSize.xs * t.lineHeight.normal },
+  caption: { fontSize: t.fontSize.xs, lineHeight: t.fontSize.xs * t.lineHeight.normal, letterSpacing: 0.1 },
   label: {
-    fontSize: t.fontSize.xs,
+    fontSize: 11.5,
     fontWeight: t.fontWeight.semibold,
     letterSpacing: t.letterSpacing.caps,
     textTransform: "uppercase" as const,
+    color: t.colors.textMuted,
   },
 
   "color-primary": { color: t.colors.textPrimary },

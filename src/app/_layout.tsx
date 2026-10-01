@@ -79,7 +79,7 @@ function RootStack() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        animation: 'ios_from_right',
         contentStyle: { backgroundColor: theme.colors.background },
       }}>
       <Stack.Screen name="dev" />
@@ -95,7 +95,7 @@ export default function RootLayout() {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <SafeAreaProvider>
-          <ThemeProvider scheme="light"palette="violetLedger" typeface="grotesk">
+          <ThemeProvider scheme="dark" palette="midnightLuxe" typeface="luxe">
             <FieldLabelStyleProvider>
               <ToastProvider>
                 <RootShell>

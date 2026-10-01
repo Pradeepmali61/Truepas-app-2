@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react-native";
+import { ChevronLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { View, type StyleProp, type ViewStyle } from "react-native";
 import { makeStyles, useThemeTokens } from "../../theme";
@@ -27,8 +27,8 @@ export function ScreenHeader({ title, subtitle, onBack, actions, style }: Screen
       {onBack ? (
         <IconButton
           accessibilityLabel="Back"
-          variant="ghost"
-          icon={<ArrowLeft size={iconSize.md} color={theme.colors.actionPrimary} />}
+          variant="secondary"
+          icon={<ChevronLeft size={iconSize.md} strokeWidth={2} color={theme.colors.textPrimary} style={{ marginLeft: -2 }} />}
           onPress={onBack}
         />
       ) : (
@@ -36,7 +36,7 @@ export function ScreenHeader({ title, subtitle, onBack, actions, style }: Screen
       )}
       <View style={styles.titles}>
         {title != null && (
-          <Typography variant="h4" numberOfLines={1}>
+          <Typography variant="h4" numberOfLines={1} style={styles.title}>
             {title}
           </Typography>
         )}
@@ -57,12 +57,14 @@ const useStyles = makeStyles((t) => ({
     alignItems: "center",
     gap: t.spacing[2],
     minHeight: t.sizes.headerHeight,
-    paddingHorizontal: t.spacing[4],
+    paddingHorizontal: t.sizes.screenGutter,
+    paddingTop: t.spacing[1],
   },
-  headerSpacer: { width: t.sizes.touchTarget },
+  title: { fontSize: t.fontSize.md, letterSpacing: -0.3 },
+  headerSpacer: { width: 44 },
   titles: { flex: 1, alignItems: "center", gap: 1 },
   actions: {
-    minWidth: t.sizes.touchTarget,
+    minWidth: 44,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",

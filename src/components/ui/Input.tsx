@@ -56,6 +56,8 @@ export function Input({
         editable={editable}
         secureTextEntry={showSecureToggle ? hidden : secureTextEntry}
         placeholderTextColor={theme.colors.textMuted}
+        selectionColor={theme.colors.actionPrimary}
+        cursorColor={theme.colors.actionPrimary}
         accessibilityState={{ disabled }}
         style={[styles.control, styles[`${size}Text`], style]}
         onFocus={(e) => {
@@ -78,9 +80,9 @@ export function Input({
           style={styles.affix}
         >
           {hidden ? (
-            <Eye size={iconSize.md} color={theme.colors.textMuted} />
+            <Eye size={iconSize.sm} color={theme.colors.textMuted} />
           ) : (
-            <EyeOff size={iconSize.md} color={theme.colors.textMuted} />
+            <EyeOff size={iconSize.sm} color={theme.colors.textMuted} />
           )}
         </Pressable>
       )}
@@ -93,18 +95,18 @@ const useStyles = makeStyles((t) => ({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: t.colors.surface,
-    borderWidth: t.sizes.fieldBorderWidth,
+    borderWidth: 1,
     borderColor: t.colors.border,
     borderRadius: t.radii.md,
-    ...t.shadows.sm,
   },
   focused: {
     borderColor: t.colors.borderFocus,
+    backgroundColor: t.colors.surfaceRaised,
     shadowColor: t.colors.actionPrimary,
-    shadowOpacity: 0.16,
-    shadowRadius: 4,
+    shadowOpacity: t.scheme === "dark" ? 0.35 : 0.18,
+    shadowRadius: 10,
     shadowOffset: { width: 0, height: 0 },
-    elevation: 2, // Android: shadows.sm alone doesn't raise the glow
+    elevation: 3,
   },
   error: { borderColor: t.colors.error },
   success: { borderColor: t.colors.success },
@@ -119,9 +121,10 @@ const useStyles = makeStyles((t) => ({
     color: t.colors.textPrimary,
     paddingHorizontal: t.sizes.controlPaddingXMd,
     paddingVertical: 0,
+    fontFamily: t.fontFamily.sans.medium,
   },
   smText: { fontSize: t.fontSize.sm },
   mdText: { fontSize: t.fontSize.base },
   lgText: { fontSize: t.fontSize.md },
-  affix: { paddingHorizontal: t.spacing[2] },
+  affix: { paddingHorizontal: t.spacing[3] },
 }));

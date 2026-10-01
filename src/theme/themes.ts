@@ -33,34 +33,40 @@ import {
     type TypePreset
 } from "./tokens";
 
-/** Perceived lightness of a hex color — drives contrast-dependent choices. */
+/**
+ * Parse "#rrggbb" or "rgb(a)(r, g, b[, a])" → [r, g, b, a]. Dark-first
+ * palettes store translucent tokens as rgba(), so every color helper must
+ * accept both forms.
+ */
+function parseColor(c: string): [number, number, number, number] {
+  if (c.startsWith("rgb")) {
+    const [r, g, b, a = "1"] = c.slice(c.indexOf("(") + 1, c.indexOf(")")).split(",").map((s) => s.trim());
+    return [Number(r), Number(g), Number(b), Number(a)];
+  }
+  const n = c.replace("#", "");
+  return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16), 1];
+}
+
+/** Perceived lightness of a color — drives contrast-dependent choices. */
 export function isLight(hex: string): boolean {
-  const n = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255);
+  const [r, g, b] = parseColor(hex).slice(0, 3).map((v) => v / 255);
   const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
   return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b) > 0.45;
 }
 
-/** Simple color mix (srgb) — the RN equivalent of CSS color-mix(). */
+/** Simple color mix (srgb) — the RN equivalent of CSS color-mix(). Alpha is dropped. */
 export function mix(hex: string, other: string, weight = 0.5): string {
-  const parse = (h: string) => {
-    const n = h.replace("#", "");
-    return [parseInt(n.slice(0, 2), 16), parseInt(n.slice(2, 4), 16), parseInt(n.slice(4, 6), 16)];
-  };
-  const [r1, g1, b1] = parse(hex);
-  const [r2, g2, b2] = parse(other);
+  const [r1, g1, b1] = parseColor(hex);
+  const [r2, g2, b2] = parseColor(other);
   const f = (a: number, b: number) => Math.round(a * weight + b * (1 - weight));
   const to = (n: number) => n.toString(16).padStart(2, "0");
   return `#${to(f(r1, r2))}${to(f(g1, g2))}${to(f(b1, b2))}`;
 }
 
-/** hex + alpha → rgba() string */
+/** color + alpha → rgba() string (an rgba input has its alpha multiplied). */
 export function alpha(hex: string, a: number): string {
-  const n = hex.replace("#", "");
-  const r = parseInt(n.slice(0, 2), 16);
-  const g = parseInt(n.slice(2, 4), 16);
-  const b = parseInt(n.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
+  const [r, g, b, a0] = parseColor(hex);
+  return `rgba(${r}, ${g}, ${b}, ${Math.round(a * a0 * 1000) / 1000})`;
 }
 
 export interface SemanticColors {
@@ -344,7 +350,10 @@ export function buildTheme(
     combo,
     ratio,
     typeface,
-    colors: scheme === "dark" ? darkColors(brand, colorOpts) : lightColors(brand, colorOpts),
+    colors:
+      scheme === "dark"
+        ? { ...darkColors(brand, colorOpts), ...(combo && "darkOverrides" in combo ? combo.darkOverrides : {}) }
+        : lightColors(brand, colorOpts),
     spacing,
     radii: combo ? roundedRadii : radii,
     fontSize,

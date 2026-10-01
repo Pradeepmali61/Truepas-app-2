@@ -121,9 +121,95 @@ export interface ComboPreset {
   cta?: "brand" | "accent";
   /** The distribution this palette was designed for — applied on select. */
   defaultRatio?: ColorRatio;
+  /**
+   * Exact semantic overrides for the dark scheme — for palettes art-directed
+   * dark-first, where the derived mixes are too approximate. Keys are
+   * SemanticColors names (themes.ts); applied after derivation.
+   */
+  darkOverrides?: Record<string, string>;
 }
 
 export const COMBO_PRESETS = {
+  /**
+   * Midnight Luxe — the premium dark-first identity. Blue-black canvas,
+   * layered graphite surfaces separated by hairlines rather than shadows,
+   * refined Truepas blue (cobalt → original sky #08B6FC) owning every action,
+   * and luminous mint/amber/coral reserved strictly for verification results.
+   */
+  midnightLuxe: {
+    brand: { b50: "#eef4ff", b100: "#d9e6ff", b200: "#adc9ff", b500: "#4d8dff", b600: "#2f6bff", b700: "#1f4fd6" },
+    accent: { b50: "#e6f8ff", b100: "#c7efff", b200: "#8fdfff", b500: "#22c3ff", b600: "#08b6fc", b700: "#0790c9" },
+    cta: "brand",
+    defaultRatio: "70-20-10",
+    neutral: {
+      bg: "#f5f7fb", surface: "#ffffff", sunken: "#eaeef5",
+      darkBg: "#05070c", darkSurface: "#0d121c", darkSunken: "#03050a",
+      shadow: "#000000",
+      textPrimary: "#0a0f1a", textSecondary: "#4a5468",
+      chrome: "#ffffff", onChrome: "#0a0f1a",
+    },
+    feedback: {
+      success: { b50: "#e9fbf3", b100: "#c9f5e1", b200: "#7fe8bd", b500: "#2fd69a", b600: "#1fbf86", b700: "#13906a" },
+      warning: { b50: "#fff8e6", b100: "#ffecbf", b200: "#ffd77a", b500: "#ffbf3c", b600: "#f5a524", b700: "#c47d0e" },
+      error: { b50: "#fff0f0", b100: "#ffd6d6", b200: "#ffa3a3", b500: "#ff6b6b", b600: "#f25454", b700: "#c93a3a" },
+      info: { b50: "#e6f8ff", b100: "#c7efff", b200: "#8fdfff", b500: "#22c3ff", b600: "#08b6fc", b700: "#0790c9" },
+    },
+    darkOverrides: {
+      actionPrimary: "#2f6bff",
+      actionPrimaryPressed: "#2459e0",
+      actionPrimarySubtle: "rgba(77, 141, 255, 0.14)",
+      actionPrimarySubtlePressed: "rgba(77, 141, 255, 0.22)",
+      actionPrimaryDisabled: "#1a2333",
+      onActionPrimary: "#ffffff",
+      actionSecondary: "#121a28",
+      actionSecondaryPressed: "#182234",
+      actionSecondaryActive: "#1d2a40",
+      onActionSecondary: "#e8eefb",
+      accent: "#22c3ff",
+
+      background: "#05070c",
+      surface: "#0d121c",
+      surfaceRaised: "#121a27",
+      surfaceSunken: "#080b12",
+      overlay: "rgba(2, 4, 8, 0.72)",
+      scrim: "rgba(2, 4, 8, 0.6)",
+      chrome: "#080b12",
+      onChrome: "#f4f7fc",
+      glass: "rgba(16, 22, 34, 0.86)",
+      glassBorder: "rgba(255, 255, 255, 0.08)",
+
+      brandSubtle: "rgba(77, 141, 255, 0.12)",
+      onBrandSubtle: "#9cc0ff",
+      accentSubtle: "rgba(34, 195, 255, 0.12)",
+      onAccentSubtle: "#8fdfff",
+
+      textPrimary: "#f4f7fc",
+      textSecondary: "#a4afc4",
+      textMuted: "#6c778d",
+      textDisabled: "#3d4659",
+      textInverse: "#05070c",
+      textLink: "#6ea2ff",
+      textLinkPressed: "#9cc0ff",
+
+      border: "rgba(255, 255, 255, 0.09)",
+      borderSubtle: "rgba(255, 255, 255, 0.055)",
+      borderStrong: "rgba(255, 255, 255, 0.16)",
+      borderFocus: "#4d8dff",
+
+      success: "#2fd69a",
+      successSubtle: "rgba(47, 214, 154, 0.12)",
+      onSuccessSubtle: "#7fe8bd",
+      warning: "#f5a524",
+      warningSubtle: "rgba(245, 165, 36, 0.12)",
+      onWarningSubtle: "#ffd77a",
+      error: "#ff6b6b",
+      errorSubtle: "rgba(255, 107, 107, 0.12)",
+      onErrorSubtle: "#ffa3a3",
+      info: "#22c3ff",
+      infoSubtle: "rgba(34, 195, 255, 0.12)",
+      onInfoSubtle: "#8fdfff",
+    },
+  },
   /** Sapphire + Amber — banking trust with warm, high-energy CTAs. */
   trustBlue: {
     brand: BRAND_PRESETS.blue,

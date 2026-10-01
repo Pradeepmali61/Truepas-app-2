@@ -30,6 +30,7 @@ import {
 } from '@/theme';
 
 const COMBO_LABELS: Record<ComboPresetName, string> = {
+  midnightLuxe: 'Midnight Luxe',
   trustBlue: 'Trust Blue',
   violetCyan: 'Violet Cyan',
   navyEmerald: 'Navy Emerald',

@@ -40,9 +40,9 @@ export const radii: Record<"none" | "sm" | "md" | "lg" | "xl" | "2xl" | "full", 
 /** Softer scale used by combo palettes (soft-UI — cards land in 16–24px). */
 export const roundedRadii: typeof radii = {
   none: 0,
-  sm: 8,
-  md: 12,
-  lg: 16,
+  sm: 10,
+  md: 14,
+  lg: 18,
   xl: 22,
   "2xl": 28,
   full: 9999,
@@ -52,15 +52,15 @@ export const fontSize: Record<
   "xs" | "sm" | "base" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl",
   number
 > = {
-  xs: 15,
-  sm: 16,
-  base: 18,
-  md: 19,
-  lg: 20,
-  xl: 22,
-  "2xl": 26,
-  "3xl": 32,
-  "4xl": 38,
+  xs: 12.5,
+  sm: 14,
+  base: 15.5,
+  md: 17,
+  lg: 18,
+  xl: 21,
+  "2xl": 25,
+  "3xl": 31,
+  "4xl": 40,
 };
 
 export const lineHeight: Record<"tight" | "snug" | "normal" | "relaxed", number> = {
@@ -81,10 +81,10 @@ export const fontWeight: Record<
 };
 
 export const letterSpacing: Record<"tight" | "normal" | "wide" | "caps", number> = {
-  tight: -0.16,
-  normal: 0,
+  tight: -0.6,
+  normal: -0.1,
   wide: 0.3,
-  caps: 0.9,
+  caps: 1.4,
 };
 
 type FontWeights = Record<"regular" | "medium" | "semibold" | "bold", string>;
@@ -134,7 +134,9 @@ const JETBRAINS_MONO: FontWeights = {
  *  jakarta: Plus Jakarta Sans everywhere — geometric, modern fintech.
  *  grotesk: Space Grotesk headings + Inter body — editorial contrast.
  */
-export const TYPE_PRESETS: Record<"inter" | "jakarta" | "grotesk", TypePairing> = {
+export const TYPE_PRESETS: Record<"inter" | "jakarta" | "grotesk" | "luxe", TypePairing> = {
+  /** Premium pairing — Jakarta display (geometric, confident) over Inter body. */
+  luxe: { sans: INTER, display: JAKARTA, mono: JETBRAINS_MONO },
   inter: { sans: INTER, display: INTER, mono: JETBRAINS_MONO },
   jakarta: { sans: JAKARTA, display: JAKARTA, mono: JETBRAINS_MONO },
   grotesk: { sans: INTER, display: SPACE_GROTESK, mono: JETBRAINS_MONO },
@@ -165,14 +167,14 @@ export const sizes: Record<
   number
 > = {
   heightXs: 32,
-  heightSm: 44,
-  heightMd: 56,
-  heightLg: 60,
-  touchTarget: 50,
-  controlPaddingXSm: 13,
-  controlPaddingXMd: 17,
-  controlPaddingXLg: 21,
-  cardPadding: 26,
+  heightSm: 42,
+  heightMd: 54,
+  heightLg: 58,
+  touchTarget: 46,
+  controlPaddingXSm: 14,
+  controlPaddingXMd: 18,
+  controlPaddingXLg: 22,
+  cardPadding: 20,
   sidebarWidth: 258,
   headerHeight: 58,
   fieldBorderWidth: 1,
@@ -182,17 +184,17 @@ export const sizes: Record<
    * one horizontal gutter, 24 between logical sections, 16 inside a section
    * (between fields/tiles), 8 between a label and its control.
    */
-  screenGutter: 16,
-  sectionGap: 24,
+  screenGutter: 20,
+  sectionGap: 28,
   fieldGap: 16,
 };
 
 export const iconSize: Record<"xs" | "sm" | "md" | "lg" | "xl", number> = {
   xs: 14,
   sm: 18,
-  md: 22,
-  lg: 26,
-  xl: 34,
+  md: 21,
+  lg: 24,
+  xl: 32,
 };
 
 type ShadowKey = "none" | "sm" | "md" | "lg" | "xl";
