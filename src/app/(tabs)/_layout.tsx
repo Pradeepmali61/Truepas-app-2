@@ -4,73 +4,81 @@ import * as Haptics from 'expo-haptics';
 import { Redirect, Tabs } from 'expo-router';
 import { CalendarCheck, FileText, House } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Animated, Pressable, Text, View, type ColorValue } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Animated, Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useKitStyles } from '@/components/truepas';
-import { NeuBox } from '@/components/ui';
 import { useAppSelector } from '@/store';
-import { makeStyles, useThemeTokens } from '@/theme';
-import { iconSize } from '@/theme/tokens';
+import { alpha, makeStyles, useThemeTokens } from '@/theme';
 
 function TabItem({ isFocused, options, label, onPress }: { isFocused: boolean; options: any; label: string; onPress: () => void }) {
   const theme = useThemeTokens();
-  const kit = useKitStyles();
   const styles = useStyles();
   const [scale] = useState(() => new Animated.Value(1));
+  const [glow] = useState(() => new Animated.Value(isFocused ? 1 : 0));
 
-  const rest = isFocused ? 1.1 : 1;
   useEffect(() => {
-    Animated.spring(scale, { toValue: rest, friction: 6, tension: 120, useNativeDriver: true }).start();
-  }, [rest, scale]);
+    Animated.spring(glow, { toValue: isFocused ? 1 : 0, friction: 8, tension: 120, useNativeDriver: true }).start();
+  }, [isFocused, glow]);
 
   const to = (v: number) =>
-    Animated.spring(scale, { toValue: v, friction: 7, tension: 140, useNativeDriver: true }).start();
+    Animated.spring(scale, { toValue: v, friction: 7, tension: 160, useNativeDriver: true }).start();
 
-  const icon = options.tabBarIcon
-    ? options.tabBarIcon({ focused: isFocused, color: isFocused ? theme.colors.onActionPrimary : theme.colors.actionPrimary, size: isFocused ? iconSize.lg : iconSize.md })
-    : null;
+  const color = isFocused ? theme.colors.textPrimary : theme.colors.textMuted;
+  const icon = options.tabBarIcon ? options.tabBarIcon({ focused: isFocused, color, size: 22 }) : null;
 
   return (
     <Pressable
       onPress={onPress}
       onPressIn={() => to(0.9)}
-      onPressOut={() => to(rest)}
+      onPressOut={() => to(1)}
       accessibilityRole="button"
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
       style={styles.tabItem}>
-      <Animated.View style={[kit.circle, isFocused && kit.navIconActive, { transform: [{ scale }] }]}>
-        {icon}
+      <Animated.View style={[styles.tabInner, { transform: [{ scale }] }]}>
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.activePill, { opacity: glow, transform: [{ scaleX: glow.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }]}
+        />
+        <View style={styles.tabContent}>
+          {icon}
+          <Text style={[styles.label, isFocused && styles.labelActive]}>{label}</Text>
+        </View>
       </Animated.View>
-      <Text style={[kit.navLabel, isFocused && kit.navLabelActive]}>{label}</Text>
     </Pressable>
   );
 }
 
-/** Floating NeuBox pill tab bar — design-repo `BottomNav` (ui/chrome.tsx). */
+/** Floating glass capsule tab bar over a fade-to-canvas scrim. */
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const theme = useThemeTokens();
   const insets = useSafeAreaInsets();
   const styles = useStyles();
 
   return (
-    <View style={[styles.navWrap, { paddingBottom: insets.bottom + theme.spacing[2] }]}>
-      <NeuBox variant="raised" radius={theme.radii.xl} depth={8} style={styles.navBar}>
+    <View pointerEvents="box-none" style={[styles.navWrap, { paddingBottom: Math.max(insets.bottom, theme.spacing[3]) }]}>
+      <LinearGradient
+        pointerEvents="none"
+        colors={[alpha(theme.colors.background, 0), alpha(theme.colors.background, 0.92), theme.colors.background]}
+        locations={[0, 0.55, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.navBar}>
         {state.routes.map((route: typeof state.routes[number], index: number) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
           const label = (options.tabBarLabel as string) ?? (options.title as string) ?? route.name;
           const onPress = () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!isFocused) {
+            void Haptics.selectionAsync();
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name as never);
             }
           };
           return <TabItem key={route.key} isFocused={isFocused} options={options} label={label} onPress={onPress} />;
         })}
-      </NeuBox>
+      </View>
     </View>
   );
 }
@@ -88,7 +96,7 @@ export default function TabsLayout() {
 
   const tabIcon = (IconCmp: typeof House) => {
     function TabIcon({ color, size }: { color: ColorValue; size: number }) {
-      return <IconCmp size={size} color={color as string} />;
+      return <IconCmp size={size} strokeWidth={1.9} color={color as string} />;
     }
     return TabIcon;
   };
@@ -124,14 +132,37 @@ export default function TabsLayout() {
 
 const useStyles = makeStyles((t) => ({
   navWrap: {
-    backgroundColor: t.colors.background,
-    paddingHorizontal: t.spacing[4],
-    paddingBottom: t.spacing[3],
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingTop: t.spacing[6],
+    paddingHorizontal: t.spacing[6],
   },
   navBar: {
     flexDirection: 'row',
-    paddingVertical: t.spacing[2],
-    paddingHorizontal: t.spacing[2],
+    height: 66,
+    padding: 6,
+    borderRadius: 33,
+    backgroundColor: t.scheme === 'dark' ? 'rgba(14, 19, 30, 0.97)' : t.colors.glass,
+    borderWidth: 1,
+    borderColor: t.colors.glassBorder,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 12,
   },
-  tabItem: { flex: 1, alignItems: 'center', gap: 4 },
+  tabItem: { flex: 1 },
+  tabInner: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  tabContent: { alignItems: 'center', gap: 3, zIndex: 1 },
+  activePill: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    borderRadius: 27,
+    backgroundColor: t.colors.actionSecondaryActive,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+  },
+  label: { fontSize: 11, fontWeight: t.fontWeight.medium, color: t.colors.textMuted, letterSpacing: 0.1 },
+  labelActive: { color: t.colors.textPrimary, fontWeight: t.fontWeight.semibold },
 }));

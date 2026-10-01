@@ -25,9 +25,10 @@ export function Label({ children, required, disabled, style }: LabelProps) {
 const useStyles = makeStyles((t) => ({
   wrap: {},
   label: {
-    fontSize: t.fontSize.base,
+    fontSize: t.fontSize.sm,
     fontWeight: t.fontWeight.medium,
-    color: t.colors.textPrimary,
+    color: t.colors.textSecondary,
+    letterSpacing: 0,
   },
   disabled: { color: t.colors.textDisabled },
   required: { color: t.colors.error, fontWeight: t.fontWeight.semibold },

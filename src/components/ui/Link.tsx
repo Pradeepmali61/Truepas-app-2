@@ -36,7 +36,7 @@ export function Link({ children, onPress, variant = "default", disabled, style, 
 }
 
 const useStyles = makeStyles((t) => ({
-  link: { color: t.colors.textLink, fontSize: t.fontSize.base },
-  underline: { textDecorationLine: "underline" as const },
+  link: { color: t.colors.textLink, fontSize: t.fontSize.base, fontWeight: t.fontWeight.semibold },
+  underline: {},
   disabled: { color: t.colors.textDisabled, textDecorationLine: "none" as const },
 }));

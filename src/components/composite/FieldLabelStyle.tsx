@@ -10,12 +10,12 @@ export type FieldLabelStyle = "stacked" | "overlap";
 const FieldLabelStyleContext = createContext<{
   labelStyle: FieldLabelStyle;
   setLabelStyle: (s: FieldLabelStyle) => void;
-}>({ labelStyle: "overlap", setLabelStyle: () => {} });
+}>({ labelStyle: "stacked", setLabelStyle: () => {} });
 
 export const useFieldLabelStyle = () => useContext(FieldLabelStyleContext);
 
 export function FieldLabelStyleProvider({ children }: { children: ReactNode }) {
-  const [labelStyle, setLabelStyle] = useState<FieldLabelStyle>("overlap");
+  const [labelStyle, setLabelStyle] = useState<FieldLabelStyle>("stacked");
   const value = useMemo(() => ({ labelStyle, setLabelStyle }), [labelStyle]);
   return <FieldLabelStyleContext.Provider value={value}>{children}</FieldLabelStyleContext.Provider>;
 }
